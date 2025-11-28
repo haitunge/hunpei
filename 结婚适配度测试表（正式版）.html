@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>结婚适配度测试表</title>
+    <!-- 引入Chart.js用于数据可视化 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入html2canvas用于导出结果 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #ff6b9d;
+            --secondary-color: #ffb6c1;
+            --accent-color: #ffd700;
+            --light-color: #fff5f7;
+            --dark-color: #8b3a62;
+            --text-color: #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .background-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .balloon {
+            position: absolute;
+            opacity: 0.7;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        .balloon.heart {
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
+        .balloon.red { background-color: #ff6b6b; }
+        .balloon.pink { background-color: #ff9ff3; }
+        .balloon.purple { background-color: #a29bfe; }
+        .balloon.blue { background-color: #74b9ff; }
+        .balloon.yellow { background-color: #ffeaa7; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin: 20px 0 15px;
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            margin: 15px 0 10px;
+            color: var(--dark-color);
+        }
+        
+        h4 {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            color: var(--dark-color);
+        }
+        
+        .intro {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .dimension {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .progress-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .question {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: white;
+            position: relative;
+        }
+        
+        .question.unanswered {
+            border-left: 4px solid #ff6b6b;
+            background-color: #fff5f5;
+        }
+        
+        .unanswered-marker {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .option {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .option input {
+            margin-right: 5px;
+        }
+        
+        .dimension-score {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: var(--light-color);
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        .dimension-footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+            font-style: italic;
+            color: #777;
+        }
+        
+        .results-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .results-table th, .results-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .results-table th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .results-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .commentary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .submit-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .submit-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading-btn {
+            pointer-events: none;
+        }
+        
+        .loading-btn::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 4px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: button-loading-spinner 1s ease infinite;
+        }
+        
+        @keyframes button-loading-spinner {
+            from {
+                transform: rotate(0turn);
+            }
+            to {
+                transform: rotate(1turn);
+            }
+        }
+        
+        .pass {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .fail {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .special-questions {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #777;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .activation-section {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        .activation-input {
+            width: 100%;
+            padding: 12px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        
+        .admin-section {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            display: none;
+        }
+        
+        .admin-btn {
+            padding: 10px 20px;
+            background-color: var(--dark-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .activation-codes {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .dimension-analysis {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fff5f5;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .dimension-analysis h4 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        
+        .dimension-commentary {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            border-left: 4px solid #74b9ff;
+        }
+        
+        .dimension-commentary h4 {
+            color: #2d7dd2;
+            margin-bottom: 10px;
+        }
+        
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .modal-confirm {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .modal-cancel {
+            background-color: #ddd;
+            color: #333;
+        }
+        
+        .warning-message {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+            justify-content: space-around;
+        }
+        
+        .chart-wrapper {
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            font-weight: bold;
+        }
+        
+        .export-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .export-btn {
+            padding: 10px 20px;
+            background-color: var(--dark-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .export-btn:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .personalized-advice {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff9e6;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .personalized-advice h4 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+        }
+        
+        .personalized-advice ul {
+            padding-left: 20px;
+        }
+        
+        .personalized-advice li {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .options {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .option {
+                margin-right: 0;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+            }
+            
+            .charts-container {
+                flex-direction: column;
+            }
+            
+            .chart-wrapper {
+                max-width: 100%;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-elements" id="backgroundElements"></div>
+    
+    <!-- 激活码验证部分 -->
+    <section class="activation-section" id="activationSection">
+        <h2 id="adminTrigger">结婚适配度测试表</h2>
+        <p>请输入激活码以使用本测试表</p>
+        <input type="text" class="activation-input" id="activationInput" placeholder="请输入激活码">
+        <button class="submit-btn" id="activateBtn">激活</button>
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">如需获取激活码，请联系管理员</p>
+    </section>
+    
+    <!-- 管理员界面 -->
+    <section class="admin-section" id="adminSection">
+        <h2>激活码管理系统</h2>
+        <p>当前时间: <span id="currentTime"></span></p>
+        <button class="admin-btn" id="generateCodesBtn">生成20个激活码（有效期24小时）</button>
+        <button class="admin-btn" id="clearStorageBtn">清除所有数据</button>
+        <div class="activation-codes" id="activationCodesList">
+            <!-- 激活码列表将在这里显示 -->
+        </div>
+        <button class="admin-btn" id="backToActivationBtn">返回激活页面</button>
+    </section>
+    
+    <!-- 测试表主体内容 -->
+    <div class="container" id="testContainer" style="display: none;">
+        <header>
+            <h1 id="testTitle">男女朋友结婚适配度测试表</h1>
+            <p>为恋爱1年以上、有明确结婚规划的情侣设计</p>
+        </header>
+        
+        <section class="intro">
+            <p><strong>答题前必读：</strong></p>
+            <ul>
+                <li>适用人群：恋爱1年以上、有明确结婚规划的情侣</li>
+                <li>答题方式：建议双方独立作答后对比分数，或共同协商填写</li>
+                <li>计分规则：普通题"是"计5分，"基本是"计4分，"不确定"计3分，"基本否"计2分，"否"计1分；标注"（反）"的题目为反向计分</li>
+            </ul>
+            <p style="margin-top: 10px;"><strong>温馨提示：</strong>测试表分10个维度，共100道题，可以给家人们一个忠实的参考评价与建议。满分为500分，分值越高，证明你们的适配度越高，测试得分在450分以上，基本可以闭眼冲！！！</p>
+            <p style="margin-top: 10px;">由于题目较多，需要20分钟左右作答，在安静环境下完成最佳。</p>
+            <p style="margin-top: 10px; font-weight: bold; color: var(--primary-color);">准备好了吗？我们马上开启测试之旅。</p>
+        </section>
+        
+        <div class="warning-message" id="warningMessage">
+            <strong>提示：</strong>您还有 <span id="unansweredCount">0</span> 道题目未完成，请完成所有题目后再提交测试。
+        </div>
+        
+        <form id="compatibilityTest">
+            <!-- 各维度题目将在这里动态生成 -->
+        </form>
+        
+        <section class="special-questions">
+            <h2>特殊场景补充题（可选作答，不计入总分）</h2>
+            <p>以下题目针对特殊情侣场景设计，帮助获取更精准的参考建议</p>
+            
+            <div class="question">
+                <p>1. 异地恋专属：你们对"结束异地的时间、定居城市"有明确规划，且双方都认可吗？</p>
+                <div class="options">
+                    <div class="option"><input type="radio" name="special1" value="是"> 是</div>
+                    <div class="option"><input type="radio" name="special1" value="基本是"> 基本是</div>
+                    <div class="option"><input type="radio" name="special1" value="不确定"> 不确定</div>
+                    <div class="option"><input type="radio" name="special1" value="基本否"> 基本否</div>
+                    <div class="option"><input type="radio" name="special1" value="否"> 否</div>
+                </div>
+            </div>
+            
+            <div class="question">
+                <p>2. 二婚专属：你们能坦诚沟通过往婚姻经历，且双方子女（若有）能接受彼此的角色吗？</p>
+                <div class="options">
+                    <div class="option"><input type="radio" name="special2" value="是"> 是</div>
+                    <div class="option"><input type="radio" name="special2" value="基本是"> 基本是</div>
+                    <div class="option"><input type="radio" name="special2" value="不确定"> 不确定</div>
+                    <div class="option"><input type="radio" name="special2" value="基本否"> 基本否</div>
+                    <div class="option"><input type="radio" name="special2" value="否"> 否</div>
+                </div>
+            </div>
+            
+            <div class="question">
+                <p>3. 丁克专属：你们对"不生育子女"的决定完全坚定，不会因长辈压力或后期想法改变而产生分歧吗？</p>
+                <div class="options">
+                    <div class="option"><input type="radio" name="special3" value="是"> 是</div>
+                    <div class="option"><input type="radio" name="special3" value="基本是"> 基本是</div>
+                    <div class="option"><input type="radio" name="special3" value="不确定"> 不确定</div>
+                    <div class="option"><input type="radio" name="special3" value="基本否"> 基本否</div>
+                    <div class="option"><input type="radio" name="special3" value="否"> 否</div>
+                </div>
+            </div>
+        </section>
+        
+        <button type="button" class="submit-btn" id="calculateResults" disabled>计算测试结果</button>
+        
+        <section class="results-section" id="resultsSection">
+            <h2>测试结果</h2>
+            
+            <!-- 图表容器 -->
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">各维度得分雷达图</div>
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">各维度得分柱状图</div>
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="results-table-container">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>维度名称</th>
+                            <th>题目编号</th>
+                            <th>维度得分</th>
+                            <th>达标线</th>
+                            <th>是否达标</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <!-- 结果将在这里动态生成 -->
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"><strong>测试总分</strong></td>
+                            <td colspan="3" id="totalScoreCell"><strong>0</strong> 分</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="commentary" id="commentary">
+                <!-- 评语将在这里动态生成 -->
+            </div>
+            
+            <!-- 个性化建议 -->
+            <div class="personalized-advice" id="personalizedAdvice">
+                <!-- 个性化建议将在这里动态生成 -->
+            </div>
+            
+            <!-- 导出按钮 -->
+            <div class="export-buttons">
+                <button class="export-btn" id="exportImage">导出为图片</button>
+                <button class="export-btn" id="exportPDF">导出为PDF</button>
+            </div>
+        </section>
+        
+        <footer>
+            <p><strong>免责提示：</strong>本测试基于婚恋心理学及市场调研数据设计，仅为情侣评估婚姻适配度提供参考，不构成婚姻决策的唯一依据。婚姻质量取决于双方的沟通、包容与共同经营，建议结合实际情况综合考量，必要时可咨询专业婚恋咨询师。</p>
+            <p>海豚婚恋成长研究所 版权所有，禁止未经授权转载、修改或商用。</p>
+        </footer>
+    </div>
+
+    <!-- 确认提交模态框 -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h3>确认提交测试</h3>
+            <p>您确定要提交测试并查看结果吗？提交后将无法修改答案。</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-confirm" id="confirmSubmit">确认提交</button>
+                <button class="modal-btn modal-cancel" id="cancelSubmit">再检查一下</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 工具函数 - 放在最前面确保使用前已定义
+        // 获取颜色对应的十六进制值
+        function getColorHex(color) {
+            const colorMap = {
+                red: '#ff6b6b',
+                pink: '#ff9ff3',
+                purple: '#a29bfe',
+                blue: '#74b9ff',
+                yellow: '#ffeaa7'
+            };
+            return colorMap[color] || '#ff6b6b';
+        }
+        
+        // 获取维度描述
+        function getDimensionDescription(dimensionId) {
+            const descriptions = {
+                emotion: "双方情感联结的稳固性与忠诚度",
+                personality: "双方性格的互补性与相处和谐度",
+                lifestyle: "双方生活细节的契合度",
+                self: "双方个人特质的匹配度",
+                education: "双方认知层面的契合度",
+                career: "双方事业发展的协调性",
+                finance: "双方经济规划的一致性",
+                family: "双方家庭关系的协调性",
+                dreams: "双方人生目标的一致性",
+                hobbies: "双方兴趣的兼容性"
+            };
+            
+            return descriptions[dimensionId] || "双方相关方面的适配度";
+        }
+        
+        // 获取题目范围
+        function getQuestionRange(dimensionId) {
+            let start = 1;
+            
+            for (let i = 0; i < dimensions.length; i++) {
+                if (dimensions[i].id === dimensionId) {
+                    return `${start}-${start + dimensions[i].questions - 1}`;
+                }
+                start += dimensions[i].questions;
+            }
+            
+            return '';
+        }
+        
+        // 获取已完成题目数量
+        function getCompletedQuestionsCount() {
+            let count = 0;
+            dimensions.forEach(dimension => {
+                for (let i = 1; i <= dimension.questions; i++) {
+                    const questionName = `${dimension.id}-${i}`;
+                    const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                    if (selectedOption) {
+                        count++;
+                    }
+                }
+            });
+            return count;
+        }
+
+        // 测试数据 - 维度信息
+        const dimensions = [
+            {
+                name: "感情基础",
+                id: "emotion",
+                questions: 15,
+                passScore: 45,
+                questionsText: [
+                    "你和对方在一起时，内心会持续感到踏实且安心，无莫名焦虑吗？",
+                    "双方能毫无保留地分享彼此的喜怒哀乐、职场压力及内心秘密，无明显隐瞒吗？",
+                    "当发生矛盾或争执时，你们会主动换位思考，先倾听对方诉求再表达观点吗？",
+                    "你坚信对方是你愿意携手面对生老病死、重大挫折的人生伴侣吗？",
+                    "双方会定期安排专属二人的相处时间（如每周1次约会），主动维持感情温度吗？",
+                    "面对异性的主动示好或外界诱惑时，你从未动摇过对这段感情的忠诚吗？",
+                    "对方的优点会让你持续欣赏，且你能接纳对方的缺点（如丢三落四）并包容，而非试图强行改变吗？",
+                    "当你遇到困难或情绪崩溃时，对方会第一时间放下琐事，给予支持和陪伴吗？",
+                    "你们在感情中都愿意为对方做出合理让步（如调整作息），而非固执己见吗？",
+                    "你会主动向亲友认可对方的伴侣身份，介绍时以'我的爱人''未来伴侣'相称吗？",
+                    "双方对这段感情的未来规划方向一致，都有明确的结婚时间节点或计划吗？",
+                    "即使相处超过1年，你依然会被对方的某些特质吸引，无'审美疲劳'感吗？",
+                    "在感情中，你从未有过'将就''凑活'的想法，而是发自内心喜爱并认可对方吗？",
+                    "当对方犯错时，你会理性沟通解决问题，而非翻旧账、人身攻击或冷战吗？",
+                    "当对方与异性有正常工作/社交接触时，你能完全信任，不会过度猜忌或查岗吗？"
+                ]
+            },
+            {
+                name: "性格适配",
+                id: "personality",
+                questions: 15,
+                passScore: 45,
+                questionsText: [
+                    "你和对方的性格（如外向/内向、急躁/沉稳）要么互补，要么相似到能自然共处吗？",
+                    "对方情绪稳定，不会因日常琐事（如外卖延迟）随意发脾气或持续冷战超过1天吗？",
+                    "你做事的节奏（如做事快慢、细致程度）与对方契合，不会因'太拖沓'或'太急躁'产生矛盾吗？",
+                    "面对重大决策时，你们一个偏理性分析一个偏感性考量，能相互平衡做出最优选择吗？",
+                    "对方有耐心倾听你的想法和情绪，不会随意打断、否定或敷衍回应吗？",
+                    "你和对方都属于愿意直接表达自身需求（如'我希望你多陪我'），而非让对方猜测的人吗？",
+                    "当产生分歧时，对方会积极沟通解决问题，而非以'算了''你随便'逃避吗？",
+                    "你欣赏对方的性格特质（如乐观、坚韧），且对方也明确认可你的性格优势吗？",
+                    "对方待人接物的方式（如热情好客/内敛礼貌）符合你的社交预期，无强烈不适感吗？",
+                    "在压力面前，你们的应对方式（如倾诉减压/独处冷静）不会相互冲突，能彼此包容吗？",
+                    "你和对方都有包容彼此性格中小瑕疵（如偶尔固执）的胸怀，不会因此频繁争吵吗？",
+                    "对方不会因固执己见而拒绝接受你的合理建议（如'这个方案可以优化'）吗？",
+                    "你们在相处中，幽默感的契合度高，能get到对方的笑点并经常一起开怀大笑吗？",
+                    "对方的性格中没有让你无法忍受的致命缺陷（如极端自私、暴力倾向、控制欲过强）吗？",
+                    "你觉得和对方相处时，无需刻意伪装自己（如假装喜欢某事物），能轻松做真实的自己吗？"
+                ]
+            },
+            {
+                name: "生活习惯",
+                id: "lifestyle",
+                questions: 12,
+                passScore: 36,
+                questionsText: [
+                    "你和对方的作息时间（如早睡早起/熬夜）基本一致，或能互不干扰（如熬夜不影响对方休息）吗？",
+                    "双方的饮食习惯（如口味咸淡、是否吃辣、三餐规律）差异不大，或能相互适应（如单独做一份辣菜）吗？",
+                    "你们对居住环境的整洁要求（如物品摆放、每周打扫频率）标准相近，不会因'太乱''太洁癖'争执吗？",
+                    "你经常因对方的生活习惯（如不爱做家务、随手扔东西）感到困扰吗？（反）",
+                    "在家务分工上，双方都愿意主动承担，不会因'这是你的事'推诿扯皮吗？",
+                    "你和对方的个人卫生习惯（如洗澡频率、衣物及时清洗）符合彼此的接受范围吗？",
+                    "对方的消费习惯（如理性消费/适度月光）与你的消费观念契合，不会因'太抠''太浪费'争吵吗？",
+                    "你们在休闲时间的安排（如宅家追剧/外出游玩）上能达成共识，不会强迫对方参与吗？",
+                    "对方不会因沉迷游戏、追剧等爱好而忽视生活责任（如不做饭、不工作）吗？",
+                    "你们对'仪式感'的重视程度（如节日庆祝、纪念日过法）相近，不会因'不浪漫''太折腾'矛盾吗？",
+                    "在生活细节上（如随手关灯、节约用水），双方的习惯不会引发频繁小摩擦吗？",
+                    "节假日期间，你们能平衡'陪伴彼此'与'陪伴原生家庭'的时间，不产生冲突吗？"
+                ]
+            },
+            {
+                name: "自身条件",
+                id: "self",
+                questions: 10,
+                passScore: 30,
+                questionsText: [
+                    "你认可对方的外貌、身材，且对方明确表示满意你的外在形象，无嫌弃感吗？",
+                    "对方的身体健康状况良好，无影响婚姻生活的重大疾病（如传染性疾病、严重慢性病）吗？",
+                    "你欣赏对方的个人品德（如诚信、善良、有责任心、孝顺），无'人品存疑'的感觉吗？",
+                    "对方有独立生活的能力（如独自做饭、处理琐事），能照顾好自己及未来的家庭吗？",
+                    "你和对方的年龄差距在你可接受的合理范围内，且双方及家人无异议吗？",
+                    "对方有持续学习和进步的意识（如学新技能、读专业书），不会安于现状、停滞不前吗？",
+                    "你认可对方的个人价值观念（如对善恶、对错、人生意义的判断），无根本性冲突吗？",
+                    "对方有良好的自控能力，能约束自己的言行（如不酗酒、不冲动行事）吗？",
+                    "你觉得对方的个人魅力（如气质、谈吐、处事能力）能吸引你长期相处，无厌倦感吗？",
+                    "对方尊重你的个人边界（如不随意翻你手机、不干涉你的社交），给你足够私人空间吗？"
+                ]
+            },
+            {
+                name: "学历与认知",
+                id: "education",
+                questions: 8,
+                passScore: 24,
+                questionsText: [
+                    "你和对方的学历水平相近，或差距不会导致认知层面的严重分歧（如无法沟通价值观）吗？",
+                    "在讨论社会热点、文化话题时，你们能有平等的交流，而非'鸡同鸭讲'或相互贬低吗？",
+                    "对方有阅读、学习等提升认知的习惯，能与你共同成长，而非拒绝接受新事物吗？",
+                    "你认可对方的学习能力和接受新事物的态度（如愿意学用新软件、理解新观念）吗？",
+                    "双方对教育理念（如子女培养方式、是否体罚孩子）的认知基本一致，无重大分歧吗？",
+                    "在认知事物的角度上，你们的差异能形成互补（如你重细节他重全局），而非相互对立吗？",
+                    "对方不会因学历或认知优势而轻视你的想法和观点，能平等对待你的表达吗？",
+                    "你觉得双方的认知水平足以共同应对未来生活中的问题（如子女教育、人际矛盾）吗？"
+                ]
+            },
+            {
+                name: "工作与事业",
+                id: "career",
+                questions: 10,
+                passScore: 30,
+                questionsText: [
+                    "你认可对方的职业选择和工作发展前景，无'这份工作没前途'的否定感吗？",
+                    "对方的工作强度（如加班频率、出差情况）让你长期感到被忽视吗？（反）",
+                    "你们能相互支持对方的工作（如帮对方准备资料、倾听职场烦恼），在对方忙碌时给予理解吗？",
+                    "对方对待工作的态度认真负责，有职业素养（如不摸鱼、遵守职场规则）吗？",
+                    "你和对方的工作领域虽不同，但能尊重彼此的职业价值（如不贬低对方职业）吗？",
+                    "双方对事业的追求目标（如安稳度日/拼搏奋斗/创业）基本一致，无根本性冲突吗？",
+                    "对方不会因工作而完全忽视家庭，能平衡工作与生活的关系（如周末留时间陪伴）吗？",
+                    "在职业发展遇到瓶颈时，你们能相互鼓励、共同寻找解决办法（如帮对方分析机会）吗？",
+                    "你能接受对方工作中必要的社交应酬，且对方会主动保持边界（如报备行程）吗？",
+                    "双方都认为工作是为了更好的生活，而非牺牲生活质量成就工作吗？"
+                ]
+            },
+            {
+                name: "经济条件",
+                id: "finance",
+                questions: 10,
+                passScore: 30,
+                questionsText: [
+                    "你和对方的经济收入水平能满足未来家庭的基本生活需求（住房、饮食、医疗）吗？",
+                    "双方对家庭经济的规划（如每月储蓄比例、是否投资、消费上限）观念一致吗？",
+                    "对方有良好的理财习惯，不会过度透支消费（如刷爆信用卡）或盲目投资吗？",
+                    "你们能坦诚交流彼此的收入、负债情况（如房贷、信用卡债），无经济隐瞒吗？",
+                    "对于婚房、彩礼/嫁妆等重大经济问题，双方及家庭已达成明确共识吗？",
+                    "对方有稳定的收入来源，经济状况不会因失业、行业波动等出现大幅波动吗？",
+                    "你们都认同'经济共担、责任共享'的家庭经济理念，不会因'谁赚钱多'争执吗？",
+                    "面对突发经济状况（如家人患病、失业），你们有足够的应急储备金或应对能力吗？",
+                    "对方不会因经济条件差异而产生自卑或自负心理，能平等对待彼此的经济贡献吗？",
+                    "面对大额消费（如超过月薪50%），你们能提前沟通、达成共识后再决策吗？"
+                ]
+            },
+            {
+                name: "家庭与亲戚",
+                id: "family",
+                questions: 10,
+                passScore: 30,
+                questionsText: [
+                    "双方父母都明确认可你们的关系，支持你们结婚，无强烈反对态度吗？",
+                    "你能接受对方的家庭氛围（如民主协商/长辈主导/大家庭聚居），且对方也能适应你的家庭吗？",
+                    "对方的父母通情达理，不会过度干涉你们未来的小家庭生活（如插手家务、消费）吗？",
+                    "你们对'婆媳/岳婿关系'有清晰的认知，知道如何保持边界、妥善处理矛盾吗？",
+                    "双方在赡养老人的责任（如每月赡养费、照顾方式）和方式上达成一致意见了吗？",
+                    "对方的亲戚关系简单和谐，不会出现过度打扰你们生活（如频繁借钱、住家）的情况吗？",
+                    "你们都认为'小家庭利益优先'，同时尊重双方原生家庭，不会因原生家庭牺牲小家庭吗？",
+                    "在涉及双方家庭的事务上（如节日送礼、家人求助），对方会与你共同商量，而非独自决定吗？",
+                    "你和对方的家人能友好相处，见面无尴尬或冲突，能正常沟通交流吗？",
+                    "双方都愿意为维系彼此家庭的和谐付出努力（如主动问候、参与家庭活动）吗？"
+                ]
+            },
+            {
+                name: "理想与追求",
+                id: "dreams",
+                questions: 7,
+                passScore: 21,
+                questionsText: [
+                    "你和对方的人生理想（如生活状态、人生价值实现方式）方向一致吗？",
+                    "对方支持你的人生追求（如职业理想、兴趣发展），且你也愿意成为对方追梦路上的后盾吗？",
+                    "你们对未来生活的期许（如定居城市、生活品质、是否丁克）基本相同吗？",
+                    "双方都有共同的中长期目标（如3年买房、5年创业、一起旅行）吗？",
+                    "对方的理想不会与家庭责任产生严重冲突（如为追梦长期异地、不顾家庭）吗？",
+                    "你们都愿意为实现共同的理想而一起努力奋斗（如共同存钱、分工推进）吗？",
+                    "你觉得和对方在一起，能共同成为更好的自己，实现个人与家庭的双重价值吗？"
+                ]
+            },
+            {
+                name: "兴趣爱好",
+                id: "hobbies",
+                questions: 3,
+                passScore: 9,
+                questionsText: [
+                    "你和对方有至少1-2项共同的兴趣爱好（如看电影、运动、做饭），能一起参与享受吗？",
+                    "即使兴趣爱好不同，你们也会尊重对方的爱好（如不贬低对方喜欢的游戏、追星），不会干涉吗？",
+                    "你们愿意尝试了解并参与对方的兴趣爱好，增进彼此的共同话题和互动吗？"
+                ]
+            }
+        ];
+
+        // 反向计分题列表 - 动态生成
+        let reverseQuestions = [];
+
+        // 情感专家评语系统
+        const expertComments = {
+            // 感情基础维度评语
+            emotion: {
+                low: "你们的感情基础较为薄弱，存在明显的信任危机或情感连接不足。这可能源于沟通不畅、缺乏共同经历或对未来规划不一致。建议你们加强深度交流，建立更多共同回忆，并坦诚讨论对未来的期望。",
+                medium: "你们的感情基础尚可，但仍有提升空间。你们彼此信任但偶尔会有不安，能够沟通但不够深入。建议你们创造更多高质量的相处时间，学习更有效的沟通技巧，共同制定清晰的未来规划。",
+                high: "你们的感情基础非常牢固，彼此高度信任，情感连接紧密。你们能够坦诚沟通，共同面对挑战，对未来有清晰的共同规划。这是幸福婚姻的重要基石，请继续保持并深化这种情感连接。"
+            },
+            // 性格适配维度评语
+            personality: {
+                low: "你们的性格存在明显冲突，可能在情绪表达、决策方式或生活习惯上难以协调。这种性格差异可能导致频繁争吵或情感疏离。建议你们学习理解彼此的性格特点，寻找互补的可能性，必要时寻求专业指导。",
+                medium: "你们的性格基本适配，但在某些方面仍需磨合。你们能够理解彼此但偶尔会有冲突，能够妥协但内心可能存有不满。建议你们加强沟通，学习冲突解决技巧，找到更和谐的相处模式。",
+                high: "你们的性格高度契合，无论是相似还是互补，都能形成良好的配合。你们能够理解并欣赏彼此的性格特点，相处融洽自然。这种性格默契是长期幸福关系的重要保障。"
+            },
+            // 生活习惯维度评语
+            lifestyle: {
+                low: "你们的生活习惯存在较大差异，可能在作息、饮食、卫生或消费观念上难以协调。这些日常摩擦如果得不到解决，会逐渐消耗感情。建议你们坦诚沟通各自的需求，制定双方都能接受的日常生活规则。",
+                medium: "你们的生活习惯基本协调，但某些方面仍需调整。你们能够包容彼此的差异，但偶尔会因生活习惯产生小摩擦。建议你们进一步协调生活节奏，建立更和谐的共同生活模式。",
+                high: "你们的生活习惯高度一致，日常相处融洽自然。无论是作息、饮食还是消费观念，你们都能够在尊重彼此的基础上找到平衡。这种生活默契将大大减少婚姻中的日常摩擦。"
+            },
+            // 其他维度的评语模式类似...
+            self: {
+                low: "你们对彼此的自身条件存在明显不满意，可能在外貌、健康、品德或能力方面有所顾虑。这些因素如果得不到解决，会影响婚姻的稳定性。建议你们坦诚沟通，共同寻找提升和接纳的方法。",
+                medium: "你们对彼此的自身条件基本满意，但某些方面仍有改进空间。你们能够欣赏对方的优点，但对其缺点有所容忍。建议你们继续提升自我，同时学习更全面地接纳对方。",
+                high: "你们高度认可彼此的自身条件，无论是外在形象还是内在品质。你们互相欣赏，彼此尊重，这种认可和欣赏是健康婚姻关系的重要基础。"
+            },
+            education: {
+                low: "你们的认知水平存在较大差距，可能在价值观、思维方式或学习态度上难以共鸣。这种认知差异会影响深度交流和共同成长。建议你们加强知识交流，寻找共同的学习兴趣。",
+                medium: "你们的认知水平基本相当，能够进行有效交流，但在某些话题上可能存在理解差异。建议你们保持开放心态，尊重彼此的观点差异，共同拓展认知边界。",
+                high: "你们的认知水平高度契合，能够进行深度的思想交流和价值观共鸣。你们彼此欣赏对方的知识和见解，这种精神层面的契合是高质量婚姻的重要特征。"
+            },
+            career: {
+                low: "你们的事业发展存在明显冲突，可能在职业选择、工作强度或职业价值观上难以协调。这种冲突会影响家庭生活和情感连接。建议你们坦诚沟通职业规划，寻找双方都能接受的工作生活平衡点。",
+                medium: "你们的事业发展基本协调，但在某些方面仍需调整。你们能够支持彼此的职业发展，但偶尔会因工作影响家庭生活。建议你们进一步明确职业与家庭的边界，建立更有效的支持系统。",
+                high: "你们的事业发展高度协调，能够相互支持彼此的职业生涯，同时保持良好的工作生活平衡。你们理解并尊重彼此的职业价值，这种相互支持是稳定婚姻的重要保障。"
+            },
+            finance: {
+                low: "你们的经济观念存在根本性分歧，可能在收入、消费、储蓄或投资方面难以达成共识。这种财务冲突是婚姻破裂的常见原因。建议你们坦诚沟通财务状况，学习财务规划，建立共同的财务目标。",
+                medium: "你们的经济观念基本一致，但在某些具体问题上仍需协调。你们能够管理日常财务，但在大额支出或长期规划上可能存在分歧。建议你们制定清晰的财务计划，加强财务沟通。",
+                high: "你们的经济观念高度一致，能够共同制定和执行财务计划，有效管理家庭经济。你们对收入、消费和储蓄有共同的理解，这种财务共识为婚姻提供了坚实的物质基础。"
+            },
+            family: {
+                low: "你们的家庭关系存在明显挑战，可能在父母认可、亲戚相处或家庭边界上遇到困难。这些家庭因素会严重影响婚姻质量。建议你们学习处理家庭关系，明确小家庭边界，共同应对外部压力。",
+                medium: "你们的家庭关系基本和谐，但在某些方面仍需努力。你们能够得到家人的基本支持，但偶尔会遇到干涉或压力。建议你们加强夫妻同盟，学习更有效地处理家庭事务。",
+                high: "你们的家庭关系非常和谐，能够得到家人的充分支持和祝福。你们能够妥善处理家庭事务，保持健康的家庭边界，这种家庭支持系统是婚姻的坚强后盾。"
+            },
+            dreams: {
+                low: "你们的人生理想存在根本性差异，可能在生活目标、价值追求或未来规划上难以协调。这种理想冲突会影响婚姻的长期稳定性。建议你们深入交流人生理想，寻找共同的发展方向。",
+                medium: "你们的人生理想基本一致，但在具体实现方式上可能需要进一步协调。你们有共同的长期目标，但在实现路径上可能存在分歧。建议你们制定更清晰的共同计划，加强目标管理。",
+                high: "你们的人生理想高度一致，能够携手追求共同的目标和梦想。你们相互支持彼此的人生追求，共同规划未来，这种共同追求是长久幸福的重要动力。"
+            },
+            hobbies: {
+                low: "你们的兴趣爱好差异较大，缺乏共同的休闲活动和交流话题。这种差异可能导致情感疏离和生活单调。建议你们尝试了解彼此的兴趣，寻找新的共同爱好。",
+                medium: "你们的兴趣爱好有部分重叠，能够共享一些休闲时光，但仍需拓展共同兴趣。建议你们保持开放心态，尝试参与对方的爱好活动。",
+                high: "你们的兴趣相投，能够共享许多快乐时光，丰富彼此的日常生活。无论是共同爱好还是对彼此兴趣的尊重，都为你们的感情增添了更多色彩和连接。"
+            }
+        };
+
+        // 优化后的个性化建议库
+        const personalizedAdvice = {
+            emotion: {
+                low: "建议每周安排固定的'深度交流时间'，坦诚分享内心的想法和感受，共同规划未来。可以尝试'情感日记'，记录每天对彼此的感激和欣赏。",
+                medium: "建议尝试新的共同活动，创造更多美好回忆，同时学习更有效的沟通技巧。可以定期回顾感情中的重要时刻，重温美好回忆。",
+                high: "继续保持良好的情感连接，定期回顾和更新共同的生活目标。可以尝试新的约会方式，为感情注入新鲜感。"
+            },
+            personality: {
+                low: "建议学习性格互补的技巧，理解彼此的行为模式，必要时寻求专业咨询。可以尝试'性格交换日'，体验对方的思维和感受方式。",
+                medium: "建议建立'情绪表达规则'，学习更有效地处理分歧和冲突。可以尝试'情绪温度计'，帮助彼此了解情绪状态。",
+                high: "继续保持对彼此性格特点的欣赏和理解，定期交流感受。可以尝试新的挑战，共同成长。"
+            },
+            lifestyle: {
+                low: "建议共同制定家务分工表和生活规则，明确各自的期望和责任。可以尝试'生活习惯交换周'，体验对方的生活方式。",
+                medium: "建议尝试适应对方的部分习惯，寻找双方都能接受的折中方案。可以制定'生活习惯调整计划'，逐步改善差异。",
+                high: "继续保持良好的生活习惯协调，定期检查是否需要调整。可以尝试引入新的健康习惯，共同提升生活质量。"
+            },
+            self: {
+                low: "建议坦诚沟通对彼此的期望，共同寻找提升和改善的方法。可以制定'个人成长计划'，互相支持和监督。",
+                medium: "建议关注彼此的优点，同时接受对方的不完美。可以尝试'优点发现日'，每天发现对方的一个新优点。",
+                high: "继续保持对彼此的欣赏和认可，共同成长进步。可以设定共同的学习目标，一起参加课程或阅读。"
+            },
+            education: {
+                low: "建议寻找共同的学习兴趣，一起参加课程或阅读相关书籍。可以制定'知识共享计划'，定期交流学习心得。",
+                medium: "建议尊重彼此的认知差异，尝试从不同角度理解问题。可以尝试'观点交换'讨论，理解对方的思维方式。",
+                high: "继续保持知识交流，共同探索新领域。可以尝试参加讲座或研讨会，拓展共同的知识边界。"
+            },
+            career: {
+                low: "建议坦诚讨论职业规划，寻找双方都能接受的工作生活平衡点。可以制定'职业发展支持计划'，互相提供建议和资源。",
+                medium: "建议建立更明确的工作家庭边界，确保有足够的相处时间。可以尝试'工作生活平衡评估'，定期调整时间分配。",
+                high: "继续保持对彼此职业发展的支持，共同规划职业与家庭的平衡。可以尝试共同参加职业发展活动，互相学习和支持。"
+            },
+            finance: {
+                low: "建议共同学习财务知识，制定清晰的财务计划和预算。可以尝试'财务透明化'，定期讨论财务状况和目标。",
+                medium: "建议建立共同的消费和储蓄目标，定期讨论财务状况。可以制定'财务健康检查'，评估和改进财务管理。",
+                high: "继续保持良好的财务沟通，定期评估和调整财务计划。可以尝试新的投资或理财方式，共同提升财务状况。"
+            },
+            family: {
+                low: "建议学习处理家庭关系的技巧，明确小家庭的边界和优先级。可以制定'家庭关系改善计划'，逐步改善与双方家庭的关系。",
+                medium: "建议加强夫妻同盟，共同应对外部家庭压力。可以尝试'家庭会议'，定期讨论家庭事务和决策。",
+                high: "继续保持良好的家庭关系，定期与双方家人保持联系。可以尝试组织家庭活动，增进家庭成员间的感情。"
+            },
+            dreams: {
+                low: "建议深入交流人生理想，寻找共同的发展方向和目标。可以尝试'梦想地图'，可视化彼此的理想和计划。",
+                medium: "建议制定更具体的共同计划，明确实现路径和时间表。可以尝试'目标分解'，将大目标分解为可执行的小步骤。",
+                high: "继续保持对彼此梦想的支持，共同追求更美好的未来。可以定期回顾和调整梦想计划，确保方向一致。"
+            },
+            hobbies: {
+                low: "建议尝试了解彼此的兴趣，寻找新的共同爱好。可以制定'兴趣探索计划'，每月尝试一项新活动。",
+                medium: "建议保持开放心态，尝试参与对方的爱好活动。可以尝试'兴趣交换日'，互相介绍和体验对方的爱好。",
+                high: "继续保持共同的兴趣爱好，探索新的休闲活动。可以尝试挑战性的新活动，共同创造难忘的回忆。"
+            }
+        };
+
+        // 激励性语言库
+        const motivationalMessages = [
+            "太棒了！您已经完成了这个维度的探索，离更了解彼此又近了一步！",
+            "恭喜您完成这个维度的测试！每一份真诚的回答都在为你们的未来添砖加瓦！",
+            "了不起！您已经完成了这个维度的评估，相信这些思考会让你们的关系更加稳固！",
+            "真棒！这个维度的完成意味着你们对彼此的理解又加深了一层！",
+            "恭喜！您已经成功完成了这个维度的探索，这些宝贵的思考将成为你们关系的基石！",
+            "太出色了！这个维度的完成展现了您对关系的认真态度，继续前进吧！",
+            "真厉害！您已经完成了这个维度的评估，每一题的回答都是对未来的投资！",
+            "恭喜您！这个维度的完成意味着你们离幸福婚姻又近了一步！",
+            "太棒了！您已经完成了这个维度的探索，这些思考会让你们的关系更加美好！",
+            "了不起！这个维度的完成展现了您对关系的重视，继续加油！"
+        ];
+
+        // 总体评价模板
+        const overallComments = {
+            excellent: {
+                title: "高度契合的伴侣关系",
+                content: "你们的婚姻适配度非常高！在绝大多数关键维度上都表现出色，彼此高度契合。你们拥有坚实的感情基础、和谐的性格配合、一致的生活理念和共同的人生目标。这种全方位的适配为幸福婚姻奠定了坚实基础，你们是理想的婚姻伴侣。"
+            },
+            good: {
+                title: "良好的伴侣关系基础",
+                content: "你们的婚姻适配度良好！在大多数重要维度上都有较好的表现，婚姻生活的基础稳固。虽然在某些方面仍需进一步磨合，但整体而言，你们具备建立幸福婚姻的良好条件。只要继续保持沟通和相互理解，你们的婚姻前景非常乐观。"
+            },
+            medium: {
+                title: "中等适配的伴侣关系",
+                content: "你们的婚姻适配度中等。在某些核心维度上表现良好，但也存在一些需要认真对待的差异。这些差异虽然不会立即威胁婚姻，但如果得不到妥善处理，可能会在长期相处中产生摩擦。建议你们重点关注未达标的维度，共同努力改善。"
+            },
+            poor: {
+                title: "需要认真考虑的伴侣关系",
+                content: "你们的婚姻适配度有待提高。在多个重要维度上存在明显差异，这些差异可能会对未来的婚姻生活构成挑战。建议你们深入沟通，坦诚面对存在的问题，认真考虑这些差异是否会影响长期的婚姻幸福。必要时可寻求专业婚恋咨询师的帮助。"
+            },
+            critical: {
+                title: "需要慎重考虑的伴侣关系",
+                content: "你们的婚姻适配度较低。在多个关键维度上存在根本性分歧，这些分歧可能会严重影响到婚姻的质量和稳定性。建议你们慎重考虑婚姻决定，认真评估这些差异的严重性。如果决定继续关系，强烈建议寻求专业婚恋咨询师的指导。"
+            }
+        };
+
+        // 激活码管理系统
+        const ADMIN_PASSWORD = "hai306952";
+        let activationCodes = JSON.parse(localStorage.getItem('activationCodes')) || {};
+        let adminClickCount = 0;
+        let adminClickTimer = null;
+        let radarChart = null;
+        let barChart = null;
+        
+        // 生成随机气球
+        function createBalloons() {
+            const container = document.getElementById('backgroundElements');
+            const colors = ['red', 'pink', 'purple', 'blue', 'yellow'];
+            
+            for (let i = 0; i < 25; i++) {
+                const balloon = document.createElement('div');
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                balloon.className = `balloon heart ${color}`;
+                balloon.style.left = `${Math.random() * 100}%`;
+                balloon.style.top = `${Math.random() * 100}%`;
+                balloon.style.animationDelay = `${Math.random() * 15}s`;
+                balloon.style.animationDuration = `${10 + Math.random() * 20}s`;
+                
+                // 设置心形背景图片
+                balloon.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="${getColorHex(color)}" d="M50 20c10 0 20 10 30 0 10 10 10 30-10 40-20 10-20-10-20-10s0 20-20 10C10 50 10 30 20 20c10-10 20 0 30 0z"/></svg>')`;
+                
+                container.appendChild(balloon);
+            }
+        }
+        
+        // 创建背景装饰元素
+        function createBackgroundElements() {
+            createBalloons();
+        }
+
+        // 生成测试题目
+        function generateTestQuestions() {
+            const form = document.getElementById('compatibilityTest');
+            form.innerHTML = ''; // 清空表单，避免重复生成
+            let questionCount = 0;
+            
+            // 重置反向计分题列表
+            reverseQuestions = [];
+            
+            dimensions.forEach((dimension, dimIndex) => {
+                const dimensionDiv = document.createElement('div');
+                dimensionDiv.className = 'dimension';
+                dimensionDiv.id = `${dimension.id}-dimension`;
+                
+                // 计算已完成题目数和剩余题目数
+                const completedQuestions = getCompletedQuestionsCount();
+                const remainingQuestions = 100 - completedQuestions;
+                
+                // 维度标题
+                const title = document.createElement('h2');
+                title.innerHTML = `❤️ ${dimension.name}维度（${dimIndex + 1}/10 | 已完成：${completedQuestions}题 | 剩余：${remainingQuestions}题）`;
+                dimensionDiv.appendChild(title);
+                
+                // 维度说明
+                const description = document.createElement('p');
+                description.innerHTML = `<strong>本维度核心评估：</strong>${getDimensionDescription(dimension.id)}`;
+                dimensionDiv.appendChild(description);
+                
+                // 进度信息
+                const progressInfo = document.createElement('div');
+                progressInfo.className = 'progress-info';
+                progressInfo.textContent = `共${dimension.questions}题，达标线≥${dimension.passScore}分`;
+                dimensionDiv.appendChild(progressInfo);
+                
+                // 生成问题
+                for (let i = 0; i < dimension.questions; i++) {
+                    questionCount++;
+                    
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question';
+                    questionDiv.id = `question-${dimension.id}-${i+1}`;
+                    
+                    const questionText = document.createElement('p');
+                    questionText.innerHTML = `<strong>${questionCount}.</strong> ${dimension.questionsText[i]}`;
+                    questionDiv.appendChild(questionText);
+                    
+                    // 检查是否为反向计分题
+                    if (dimension.questionsText[i].includes('（反）')) {
+                        reverseQuestions.push(`${dimension.id}-${i+1}`);
+                    }
+                    
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options';
+                    
+                    // 第34题和第62题是特殊反向计分题，需要特殊处理
+                    const isSpecialReverse = (questionCount === 34 || questionCount === 62);
+                    
+                    const optionValues = isSpecialReverse ? [
+                        { text: "是", value: 1, displayScore: 1 },
+                        { text: "基本是", value: 2, displayScore: 2 },
+                        { text: "不确定", value: 3, displayScore: 3 },
+                        { text: "基本否", value: 4, displayScore: 4 },
+                        { text: "否", value: 5, displayScore: 5 }
+                    ] : [
+                        { text: "是", value: 5, displayScore: 5 },
+                        { text: "基本是", value: 4, displayScore: 4 },
+                        { text: "不确定", value: 3, displayScore: 3 },
+                        { text: "基本否", value: 2, displayScore: 2 },
+                        { text: "否", value: 1, displayScore: 1 }
+                    ];
+                    
+                    optionValues.forEach(option => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'option';
+                        
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = `${dimension.id}-${i+1}`;
+                        input.value = option.value;
+                        input.id = `${dimension.id}-${i+1}-${option.value}`;
+                        
+                        // 恢复已保存的答案
+                        const savedAnswer = localStorage.getItem(`${dimension.id}-${i+1}`);
+                        if (savedAnswer && savedAnswer === option.value) {
+                            input.checked = true;
+                        }
+                        
+                        // 添加事件监听器，保存答案并更新维度得分
+                        input.addEventListener('change', function() {
+                            localStorage.setItem(`${dimension.id}-${i+1}`, this.value);
+                            updateProgress();
+                            updateDimensionScore(dimension.id);
+                            checkAllQuestionsAnswered();
+                        });
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `${dimension.id}-${i+1}-${option.value}`;
+                        label.textContent = `${option.text}（${option.displayScore}分）`;
+                        
+                        optionDiv.appendChild(input);
+                        optionDiv.appendChild(label);
+                        optionsDiv.appendChild(optionDiv);
+                    });
+                    
+                    questionDiv.appendChild(optionsDiv);
+                    dimensionDiv.appendChild(questionDiv);
+                }
+                
+                // 维度得分显示
+                const scoreDisplay = document.createElement('div');
+                scoreDisplay.className = 'dimension-score';
+                scoreDisplay.id = `${dimension.id}-score`;
+                scoreDisplay.innerHTML = `本维度得分：<span id="${dimension.id}-score-value">0</span>`;
+                dimensionDiv.appendChild(scoreDisplay);
+                
+                // 维度底部 - 使用激励性语言
+                const footer = document.createElement('div');
+                footer.className = 'dimension-footer';
+                footer.textContent = motivationalMessages[dimIndex % motivationalMessages.length];
+                dimensionDiv.appendChild(footer);
+                
+                form.appendChild(dimensionDiv);
+            });
+            
+            // 初始化所有维度得分
+            dimensions.forEach(dimension => {
+                updateDimensionScore(dimension.id);
+            });
+            
+            // 初始检查是否所有题目已回答
+            checkAllQuestionsAnswered();
+        }
+        
+        // 检查所有题目是否已回答
+        function checkAllQuestionsAnswered() {
+            const totalQuestions = 100;
+            const answeredQuestions = getCompletedQuestionsCount();
+            const unansweredCount = totalQuestions - answeredQuestions;
+            const submitBtn = document.getElementById('calculateResults');
+            const warningMessage = document.getElementById('warningMessage');
+            const unansweredCountElement = document.getElementById('unansweredCount');
+            
+            // 更新未答题数量显示
+            unansweredCountElement.textContent = unansweredCount;
+            
+            // 标记未回答的题目
+            dimensions.forEach(dimension => {
+                for (let i = 1; i <= dimension.questions; i++) {
+                    const questionElement = document.getElementById(`question-${dimension.id}-${i}`);
+                    const selectedOption = document.querySelector(`input[name="${dimension.id}-${i}"]:checked`);
+                    
+                    if (questionElement) {
+                        if (selectedOption) {
+                            questionElement.classList.remove('unanswered');
+                            // 移除未答标记
+                            const existingMarker = questionElement.querySelector('.unanswered-marker');
+                            if (existingMarker) {
+                                existingMarker.remove();
+                            }
+                        } else {
+                            questionElement.classList.add('unanswered');
+                            // 添加未答标记（如果还没有）
+                            if (!questionElement.querySelector('.unanswered-marker')) {
+                                const marker = document.createElement('div');
+                                marker.className = 'unanswered-marker';
+                                marker.textContent = '未答';
+                                questionElement.appendChild(marker);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 更新提交按钮状态和警告信息
+            if (unansweredCount === 0) {
+                submitBtn.disabled = false;
+                warningMessage.style.display = 'none';
+            } else {
+                submitBtn.disabled = true;
+                warningMessage.style.display = 'block';
+            }
+            
+            return unansweredCount === 0;
+        }
+        
+        // 更新维度得分
+        function updateDimensionScore(dimensionId) {
+            const dimension = dimensions.find(d => d.id === dimensionId);
+            if (!dimension) return;
+            
+            let dimensionScore = 0;
+            
+            for (let i = 1; i <= dimension.questions; i++) {
+                const questionName = `${dimensionId}-${i}`;
+                const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                
+                if (selectedOption) {
+                    let score = parseInt(selectedOption.value);
+                    
+                    // 检查是否为反向计分题
+                    if (reverseQuestions.includes(questionName)) {
+                        score = 6 - score; // 反向计分：1变5，2变4，3不变，4变2，5变1
+                    }
+                    
+                    dimensionScore += score;
+                }
+            }
+            
+            // 更新维度得分显示
+            const scoreElement = document.getElementById(`${dimensionId}-score-value`);
+            if (scoreElement) {
+                scoreElement.textContent = dimensionScore;
+            }
+        }
+        
+        // 更新进度显示
+        function updateProgress() {
+            const completedQuestions = getCompletedQuestionsCount();
+            
+            dimensions.forEach((dimension, dimIndex) => {
+                const titleElement = document.querySelector(`#${dimension.id}-dimension h2`);
+                if (titleElement) {
+                    titleElement.innerHTML = `❤️ ${dimension.name}维度（${dimIndex + 1}/10 | 已完成：${completedQuestions}题 | 剩余：${100 - completedQuestions}题）`;
+                }
+            });
+        }
+
+        // 计算得分
+        function calculateScores() {
+            try {
+                let totalScore = 0;
+                const dimensionScores = {};
+                
+                dimensions.forEach(dimension => {
+                    let dimensionScore = 0;
+                    
+                    for (let i = 1; i <= dimension.questions; i++) {
+                        const questionName = `${dimension.id}-${i}`;
+                        const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                        
+                        if (selectedOption) {
+                            let score = parseInt(selectedOption.value);
+                            
+                            // 检查是否为反向计分题
+                            if (reverseQuestions.includes(questionName)) {
+                                score = 6 - score; // 反向计分：1变5，2变4，3不变，4变2，5变1
+                            }
+                            
+                            dimensionScore += score;
+                        }
+                    }
+                    
+                    dimensionScores[dimension.id] = dimensionScore;
+                    totalScore += dimensionScore;
+                });
+                
+                return { totalScore, dimensionScores };
+            } catch (error) {
+                console.error('计算得分时出错:', error);
+                return { totalScore: 0, dimensionScores: {} };
+            }
+        }
+
+        // 创建雷达图
+        function createRadarChart(dimensionScores) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            // 如果已有图表，先销毁
+            if (radarChart) {
+                radarChart.destroy();
+            }
+            
+            const labels = dimensions.map(d => d.name);
+            const scores = dimensions.map(d => dimensionScores[d.id]);
+            const maxScores = dimensions.map(d => d.questions * 5);
+            
+            // 计算每个维度的百分比得分
+            const percentageScores = dimensions.map((d, i) => 
+                Math.round((dimensionScores[d.id] / maxScores[i]) * 100)
+            );
+            
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '维度得分百分比',
+                        data: percentageScores,
+                        backgroundColor: 'rgba(255, 107, 157, 0.2)',
+                        borderColor: 'rgba(255, 107, 157, 1)',
+                        pointBackgroundColor: 'rgba(255, 107, 157, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 107, 157, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw;
+                                    const index = context.dataIndex;
+                                    const actualScore = scores[index];
+                                    const maxScore = maxScores[index];
+                                    return `${label}: ${value}% (${actualScore}/${maxScore}分)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 创建柱状图
+        function createBarChart(dimensionScores) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            // 如果已有图表，先销毁
+            if (barChart) {
+                barChart.destroy();
+            }
+            
+            const labels = dimensions.map(d => d.name);
+            const scores = dimensions.map(d => dimensionScores[d.id]);
+            const maxScores = dimensions.map(d => d.passScore);
+            const colors = dimensions.map(d => 
+                dimensionScores[d.id] >= d.passScore ? 'rgba(40, 167, 69, 0.7)' : 'rgba(220, 53, 69, 0.7)'
+            );
+            
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '实际得分',
+                            data: scores,
+                            backgroundColor: colors,
+                            borderColor: colors.map(c => c.replace('0.7', '1')),
+                            borderWidth: 1
+                        },
+                        {
+                            label: '达标线',
+                            data: maxScores,
+                            type: 'line',
+                            fill: false,
+                            borderColor: 'rgba(255, 193, 7, 1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '得分'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y;
+                                    if (context.datasetIndex === 0) {
+                                        const dimension = dimensions[context.dataIndex];
+                                        label += ` (达标线: ${dimension.passScore})`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 显示结果
+        function displayResults(totalScore, dimensionScores) {
+            const resultsSection = document.getElementById('resultsSection');
+            const tableBody = document.getElementById('resultsTableBody');
+            const totalScoreCell = document.getElementById('totalScoreCell');
+            const commentary = document.getElementById('commentary');
+            const personalizedAdviceSection = document.getElementById('personalizedAdvice');
+            
+            // 清空表格
+            tableBody.innerHTML = '';
+            
+            // 计算达标维度数量
+            const passedDimensions = dimensions.filter(dim => dimensionScores[dim.id] >= dim.passScore).length;
+            const totalDimensions = dimensions.length;
+            
+            // 填充表格
+            dimensions.forEach(dimension => {
+                const score = dimensionScores[dimension.id];
+                const isPass = score >= dimension.passScore;
+                
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${dimension.name}</td>
+                    <td>${getQuestionRange(dimension.id)}</td>
+                    <td>${score}</td>
+                    <td>≥${dimension.passScore}</td>
+                    <td class="${isPass ? 'pass' : 'fail'}">${isPass ? '达标' : '未达标'}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // 更新总分
+            totalScoreCell.innerHTML = `<strong>${totalScore}</strong> 分`;
+            
+            // 创建图表
+            createRadarChart(dimensionScores);
+            createBarChart(dimensionScores);
+            
+            // 生成评语
+            commentary.innerHTML = generateCommentary(totalScore, dimensionScores, passedDimensions, totalDimensions);
+            
+            // 生成个性化建议
+            personalizedAdviceSection.innerHTML = generatePersonalizedAdvice(dimensionScores);
+            
+            // 显示结果区域
+            resultsSection.style.display = 'block';
+            
+            // 滚动到结果区域
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 生成个性化建议
+        function generatePersonalizedAdvice(dimensionScores) {
+            let advice = '<h4>个性化改进建议</h4><ul>';
+            
+            // 找出得分最低的三个维度
+            const dimensionScoresArray = dimensions.map(dimension => ({
+                name: dimension.name,
+                id: dimension.id,
+                score: dimensionScores[dimension.id],
+                maxScore: dimension.questions * 5,
+                percentage: (dimensionScores[dimension.id] / (dimension.questions * 5)) * 100
+            }));
+            
+            // 按百分比得分排序，找出需要改进的维度
+            const dimensionsToImprove = dimensionScoresArray
+                .sort((a, b) => a.percentage - b.percentage)
+                .slice(0, 3);
+            
+            dimensionsToImprove.forEach(dimension => {
+                let adviceLevel;
+                if (dimension.percentage >= 80) {
+                    adviceLevel = 'high';
+                } else if (dimension.percentage >= 60) {
+                    adviceLevel = 'medium';
+                } else {
+                    adviceLevel = 'low';
+                }
+                
+                const adviceText = personalizedAdvice[dimension.id][adviceLevel];
+                advice += `<li><strong>${dimension.name}维度：</strong>${adviceText}</li>`;
+            });
+            
+            advice += '</ul>';
+            
+            // 添加总体建议
+            const totalScore = Object.values(dimensionScores).reduce((a, b) => a + b, 0);
+            if (totalScore >= 450) {
+                advice += '<p style="margin-top: 15px; font-weight: bold; color: var(--primary-color);">恭喜你们！你们的适配度非常高，基本可以闭眼冲！继续保持良好的沟通和互动，你们的婚姻将会非常幸福美满。</p>';
+            } else if (totalScore >= 400) {
+                advice += '<p style="margin-top: 15px;">你们的适配度良好，只要针对上述建议进行改进，你们的婚姻前景非常乐观。</p>';
+            } else if (totalScore >= 350) {
+                advice += '<p style="margin-top: 15px;">你们的适配度中等，建议重点关注上述改进建议，共同努力提升关系质量。</p>';
+            } else {
+                advice += '<p style="margin-top: 15px;">你们的适配度有待提高，建议认真考虑上述改进建议，必要时可寻求专业婚恋咨询师的帮助。</p>';
+            }
+            
+            return advice;
+        }
+
+        // 生成评语
+        function generateCommentary(totalScore, dimensionScores, passedDimensions, totalDimensions) {
+            let commentary = '<h3>情感专家分析与建议</h3>';
+            
+            // 根据总分和达标维度数量给出总体评价
+            const passRate = passedDimensions / totalDimensions;
+            
+            let overallComment;
+            if (passRate >= 0.9 && totalScore >= 450) {
+                overallComment = overallComments.excellent;
+            } else if (passRate >= 0.8 && totalScore >= 400) {
+                overallComment = overallComments.good;
+            } else if (passRate >= 0.7 && totalScore >= 350) {
+                overallComment = overallComments.medium;
+            } else if (passRate >= 0.6 && totalScore >= 300) {
+                overallComment = overallComments.poor;
+            } else {
+                overallComment = overallComments.critical;
+            }
+            
+            commentary += `
+                <div class="dimension-commentary">
+                    <h4>${overallComment.title}</h4>
+                    <p>${overallComment.content}</p>
+                </div>
+            `;
+            
+            // 为每个维度生成详细点评
+            commentary += '<h3>各维度详细分析</h3>';
+            
+            dimensions.forEach(dimension => {
+                const score = dimensionScores[dimension.id];
+                const maxScore = dimension.questions * 5;
+                const percentage = (score / maxScore) * 100;
+                
+                let commentLevel;
+                if (percentage >= 80) {
+                    commentLevel = 'high';
+                } else if (percentage >= 60) {
+                    commentLevel = 'medium';
+                } else {
+                    commentLevel = 'low';
+                }
+                
+                const comment = expertComments[dimension.id][commentLevel];
+                const isPass = score >= dimension.passScore;
+                
+                if (isPass) {
+                    commentary += `
+                        <div class="dimension-commentary">
+                            <h4>${dimension.name}维度 (${score}/${maxScore}) - 表现良好</h4>
+                            <p>${comment}</p>
+                        </div>
+                    `;
+                } else {
+                    commentary += `
+                        <div class="dimension-analysis">
+                            <h4>${dimension.name}维度 (${score}/${maxScore}) - 需要关注</h4>
+                            <p>${comment}</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            commentary += `
+                <div class="dimension-commentary" style="margin-top: 30px;">
+                    <h4>情感专家温馨提示</h4>
+                    <p>婚姻是两个人共同经营的事业，测试结果仅供参考。无论得分如何，最重要的是双方愿意为彼此和关系付出努力，共同成长。每段关系都有其独特性，真正的幸福来自于相互理解、包容和共同成长。祝你们幸福！</p>
+                </div>
+            `;
+            
+            return commentary;
+        }
+
+        // 导出为图片
+        function exportToImage() {
+            const resultsSection = document.getElementById('resultsSection');
+            
+            // 显示加载状态
+            const exportBtn = document.getElementById('exportImage');
+            const originalText = exportBtn.textContent;
+            exportBtn.textContent = '生成中...';
+            exportBtn.disabled = true;
+            
+            html2canvas(resultsSection).then(canvas => {
+                const link = document.createElement('a');
+                link.download = '结婚适配度测试结果.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 恢复按钮状态
+                exportBtn.textContent = originalText;
+                exportBtn.disabled = false;
+            });
+        }
+
+        // 导出为PDF
+        function exportToPDF() {
+            const resultsSection = document.getElementById('resultsSection');
+            
+            // 显示加载状态
+            const exportBtn = document.getElementById('exportPDF');
+            const originalText = exportBtn.textContent;
+            exportBtn.textContent = '生成中...';
+            exportBtn.disabled = true;
+            
+            html2canvas(resultsSection).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('结婚适配度测试结果.pdf');
+                
+                // 恢复按钮状态
+                exportBtn.textContent = originalText;
+                exportBtn.disabled = false;
+            });
+        }
+
+        // 激活码管理功能
+        function generateActivationCodes() {
+            const codes = [];
+            for (let i = 0; i < 20; i++) {
+                const code = 'ACT' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                const expiry = Date.now() + 24 * 60 * 60 * 1000; // 24小时后过期
+                // 增强安全性：添加使用次数限制
+                codes.push({ code, expiry, used: false });
+            }
+            
+            // 保存到localStorage
+            activationCodes = {};
+            codes.forEach(item => {
+                activationCodes[item.code] = {
+                    expiry: item.expiry,
+                    used: item.used
+                };
+            });
+            localStorage.setItem('activationCodes', JSON.stringify(activationCodes));
+            
+            return codes;
+        }
+        
+        function displayActivationCodes(codes) {
+            const list = document.getElementById('activationCodesList');
+            list.innerHTML = '';
+            
+            if (codes.length === 0) {
+                list.innerHTML = '<p>暂无激活码，请点击上方按钮生成</p>';
+                return;
+            }
+            
+            codes.forEach(item => {
+                const codeElement = document.createElement('div');
+                codeElement.style.padding = '5px 0';
+                codeElement.style.borderBottom = '1px dashed #ddd';
+                const status = item.used ? '<span style="color:red">(已使用)</span>' : '<span style="color:green">(未使用)</span>';
+                codeElement.innerHTML = `<strong>${item.code}</strong> ${status} - 有效期至: ${new Date(item.expiry).toLocaleString()}`;
+                list.appendChild(codeElement);
+            });
+        }
+        
+        function validateActivationCode(code) {
+            try {
+                const storedCodes = JSON.parse(localStorage.getItem('activationCodes')) || {};
+                
+                if (storedCodes[code] && storedCodes[code].expiry > Date.now() && !storedCodes[code].used) {
+                    // 激活码有效且未使用
+                    // 标记为已使用
+                    storedCodes[code].used = true;
+                    localStorage.setItem('activationCodes', JSON.stringify(storedCodes));
+                    
+                    // 保存激活状态
+                    localStorage.setItem('activeCode', code);
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('激活码验证错误:', error);
+                return false;
+            }
+        }
+        
+        function checkActivation() {
+            const activeCode = localStorage.getItem('activeCode');
+            if (activeCode) {
+                // 检查激活码是否仍然有效
+                const storedCodes = JSON.parse(localStorage.getItem('activationCodes')) || {};
+                if (storedCodes[activeCode] && storedCodes[activeCode].expiry > Date.now()) {
+                    return true;
+                } else {
+                    // 激活码已过期，清除状态
+                    localStorage.removeItem('activeCode');
+                }
+            }
+            return false;
+        }
+        
+        // 显示管理员入口
+        function showAdminAccess() {
+            const password = prompt('请输入管理员密码:');
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('testContainer').style.display = 'none';
+                document.getElementById('adminSection').style.display = 'block';
+                
+                // 更新当前时间
+                document.getElementById('currentTime').textContent = new Date().toLocaleString();
+                
+                // 显示现有激活码
+                const storedCodes = JSON.parse(localStorage.getItem('activationCodes')) || {};
+                const codes = Object.keys(storedCodes).map(code => ({
+                    code,
+                    expiry: storedCodes[code].expiry,
+                    used: storedCodes[code].used
+                }));
+                displayActivationCodes(codes);
+            } else {
+                alert('管理员密码错误');
+            }
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            createBackgroundElements();
+            
+            // 检查是否已激活
+            if (checkActivation()) {
+                document.getElementById('activationSection').style.display = 'none';
+                document.getElementById('testContainer').style.display = 'block';
+                generateTestQuestions();
+                updateProgress();
+                
+                // 如果有未完成的题目，滚动到第一个未完成的题目
+                const firstUnanswered = document.querySelector('input[type="radio"]:not(:checked)');
+                if (firstUnanswered) {
+                    firstUnanswered.closest('.dimension').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            
+            // 激活按钮事件
+            document.getElementById('activateBtn').addEventListener('click', function() {
+                const code = document.getElementById('activationInput').value.trim();
+                if (validateActivationCode(code)) {
+                    document.getElementById('activationSection').style.display = 'none';
+                    document.getElementById('testContainer').style.display = 'block';
+                    generateTestQuestions();
+                    updateProgress();
+                } else {
+                    alert('激活码无效、已过期或已被使用，请检查后重试');
+                }
+            });
+            
+            // 隐藏式管理员入口 - 激活页面
+            document.getElementById('adminTrigger').addEventListener('click', function() {
+                adminClickCount++;
+                
+                // 清除之前的计时器
+                if (adminClickTimer) {
+                    clearTimeout(adminClickTimer);
+                }
+                
+                // 设置新的计时器，5秒后重置点击计数
+                adminClickTimer = setTimeout(() => {
+                    adminClickCount = 0;
+                }, 2000);
+                
+                // 如果点击了5次，显示管理员界面
+                if (adminClickCount >= 5) {
+                    adminClickCount = 0;
+                    const password = prompt('请输入管理员密码:');
+                    if (password === ADMIN_PASSWORD) {
+                        document.getElementById('activationSection').style.display = 'none';
+                        document.getElementById('adminSection').style.display = 'block';
+                        
+                        // 更新当前时间
+                        document.getElementById('currentTime').textContent = new Date().toLocaleString();
+                        
+                        // 显示现有激活码
+                        const storedCodes = JSON.parse(localStorage.getItem('activationCodes')) || {};
+                        const codes = Object.keys(storedCodes).map(code => ({
+                            code,
+                            expiry: storedCodes[code].expiry,
+                            used: storedCodes[code].used
+                        }));
+                        displayActivationCodes(codes);
+                    } else {
+                        alert('管理员密码错误');
+                    }
+                }
+            });
+            
+            // 隐藏式管理员入口 - 测试页面
+            document.getElementById('testTitle').addEventListener('click', function() {
+                adminClickCount++;
+                
+                // 清除之前的计时器
+                if (adminClickTimer) {
+                    clearTimeout(adminClickTimer);
+                }
+                
+                // 设置新的计时器，5秒后重置点击计数
+                adminClickTimer = setTimeout(() => {
+                    adminClickCount = 0;
+                }, 2000);
+                
+                // 如果点击了5次，显示管理员界面
+                if (adminClickCount >= 5) {
+                    adminClickCount = 0;
+                    showAdminAccess();
+                }
+            });
+            
+            // 生成激活码按钮事件
+            document.getElementById('generateCodesBtn').addEventListener('click', function() {
+                const codes = generateActivationCodes();
+                displayActivationCodes(codes);
+            });
+            
+            // 清除所有数据按钮事件
+            document.getElementById('clearStorageBtn').addEventListener('click', function() {
+                if (confirm('确定要清除所有测试数据和激活码吗？此操作不可逆！')) {
+                    localStorage.clear();
+                    activationCodes = {};
+                    alert('所有数据已清除');
+                    location.reload();
+                }
+            });
+            
+            // 返回激活页面按钮事件
+            document.getElementById('backToActivationBtn').addEventListener('click', function() {
+                document.getElementById('adminSection').style.display = 'none';
+                document.getElementById('activationSection').style.display = 'block';
+            });
+            
+            // 提交按钮事件监听
+            document.getElementById('calculateResults').addEventListener('click', function() {
+                // 检查是否所有题目已回答
+                if (!checkAllQuestionsAnswered()) {
+                    alert('请完成所有题目后再提交测试！');
+                    return;
+                }
+                
+                // 显示确认模态框
+                document.getElementById('confirmationModal').style.display = 'flex';
+            });
+            
+            // 确认提交按钮事件
+            document.getElementById('confirmSubmit').addEventListener('click', function() {
+                // 显示加载状态
+                const submitBtn = document.getElementById('calculateResults');
+                submitBtn.classList.add('loading-btn');
+                submitBtn.textContent = '计算中...';
+                
+                // 模拟计算过程
+                setTimeout(() => {
+                    const { totalScore, dimensionScores } = calculateScores();
+                    displayResults(totalScore, dimensionScores);
+                    document.getElementById('confirmationModal').style.display = 'none';
+                    
+                    // 恢复按钮状态
+                    submitBtn.classList.remove('loading-btn');
+                    submitBtn.textContent = '计算测试结果';
+                }, 1500);
+            });
+            
+            // 取消提交按钮事件
+            document.getElementById('cancelSubmit').addEventListener('click', function() {
+                document.getElementById('confirmationModal').style.display = 'none';
+            });
+            
+            // 导出按钮事件
+            document.getElementById('exportImage').addEventListener('click', exportToImage);
+            document.getElementById('exportPDF').addEventListener('click', exportToPDF);
+        });
+    </script>
+    <!-- 引入jsPDF用于PDF导出 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // 初始化jsPDF
+        window.jsPDF = window.jspdf.jsPDF;
+    </script>
+</body>
+</html>
